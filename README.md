@@ -1,5 +1,8 @@
-# d3-templates
- 
-# Preview:
+Interactive templates for data visualizations using d3 and ScrollMagic.
 
-[Scrollable Line Chart](https://benjms.github.io/d3-templates/scrolling-line-graph/)
+## Preview:
+
+[Scrollable Line Plot](https://benjms.github.io/d3-templates/scrolling-line-plot/)
+
+[Scrollable Scatter Chart](https://benjms.github.io/d3-templates/scrolling-scatter-graph/)
+
