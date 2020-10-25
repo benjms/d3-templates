@@ -44,7 +44,7 @@ var clipPath = graph.append("defs")
     .attr("height", DIM.HEIGHT);
 
 //initialize variables
-var state = 0;
+var state = 1;
 var bigmac;
 
 //read in data & first draw
