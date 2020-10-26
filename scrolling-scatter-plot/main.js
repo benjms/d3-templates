@@ -1,29 +1,32 @@
-/*---------- SCROLLMAGIC STUFF ----------*/
+/*---------- D3 STUFF ----------*/
 
+//define dimensions
 const SIZE = {X:$(".graph").width(), Y:$(".graph").width()*0.6};
 const MARGIN = {TOP:10, BOTTOM:100, LEFT:100, RIGHT:10};
 const DIM = {WIDTH: SIZE.X - MARGIN.LEFT - MARGIN.RIGHT,
             HEIGHT: SIZE.Y - MARGIN.TOP - MARGIN.BOTTOM};
 
+//add svg to graph class
 const svg = d3.select(".graph").append("svg")
     .attr("width", SIZE.X)
     .attr("height", SIZE.Y);
 
+//add group to svg to have margins apply to everything
 const graph = svg.append("g")
     .attr("transform", `translate(${MARGIN.LEFT}, ${MARGIN.TOP})`);
 
-// scales
+//define scales
 var x = d3.scaleLinear()
     .range([0, DIM.WIDTH]);
 
 var y = d3.scaleLinear()
     .range([DIM.HEIGHT, 0]);
 
-// axis generators
+//define axis generators
 const xAxisCall = d3.axisBottom()
 const yAxisCall = d3.axisLeft()
 
-// axis groups
+//make axis groups
 const xAxis = graph.append("g")
 	.attr("class", "x axis")
     .attr("transform", `translate(0, ${DIM.HEIGHT+100})`);
@@ -32,11 +35,11 @@ const yAxis = graph.append("g")
     .attr("class", "y axis")
     .attr("transform", "translate(-50,0)");
 
-// initialize variables
+//initialize variables
 var state = 1;
 var iris;
 
-// read in data & first draw
+//read in data & first draw
 d3.csv("data/iris.csv").then(data => {
     var i = 0;
     iris = [];
@@ -46,8 +49,8 @@ d3.csv("data/iris.csv").then(data => {
         d.sepal_width = Number(d.sepal_width);
         d.petal_length = Number(d.petal_length);
         d.petal_width = Number(d.petal_width);
-        d.xPos = xPos(i, 15);
-        d.yPos = yPos(i, 15);
+        d.xPos = position(i, 15)[0];
+        d.yPos = position(i, 15)[1];
         iris[i] = d;
         i++;
     });
@@ -63,7 +66,7 @@ d3.csv("data/iris.csv").then(data => {
     draw(iris, state);
 })
 
-// function to arrange dots in grid
+//function to arrange dots in grid
 function gridArrange(data) {
     x.domain([0, d3.max(data, d => d.xPos)]);
     $(".x.axis").addClass("invisible")
@@ -90,6 +93,7 @@ function scatter(data) {
         .attr("cy", function (d) { return y(d.petal_length); } )
 }
 
+//function to zoom into focus group
 function zoomInFocus(data) {
     var zoomData = data.filter(d => {return isFocus(d)==="focus"});
     d3.selectAll(".not-focus").transition().duration(1000).style("opacity", 0);
@@ -102,6 +106,7 @@ function zoomInFocus(data) {
         .attr("cy", function (d) { return y(d.petal_length); } )
 }
 
+//function to zoom into non-focus group
 function zoomInNonFocus(data) {
     var zoomData = data.filter(d => {return isFocus(d)==="not-focus"});
     d3.selectAll(".focus").transition().duration(1000).style("opacity", 0);
@@ -114,6 +119,7 @@ function zoomInNonFocus(data) {
         .attr("cy", function (d) { return y(d.petal_length); } )
 }
 
+//function for zooming out to entire dataset
 function zoomOut(data) {
     d3.selectAll("circle").transition().duration(1000).style("opacity", 1);
 
@@ -125,21 +131,18 @@ function zoomOut(data) {
         .attr("cy", function (d) { return y(d.petal_length); } )
 }
 
-function xPos(index, obsPerRow) {
-    var factor = Math.floor(index / obsPerRow);
+//function to determine position in grid align
+function position(index, obsPerRow) {
+    var row = Math.floor(index / obsPerRow);
     var pos = index;
 
     if (pos >= obsPerRow) {
-        pos = pos - obsPerRow*factor;
+        pos = pos - obsPerRow*row;
     }
-    return pos+1;
+    return [pos+1, row];
 }
 
-function yPos(index, obsPerRow) {
-    var pos = Math.floor(index / obsPerRow);
-    return pos+1;
-}
-
+//function to determine if in focus group
 function isFocus(d) {
     if (d.petal_width > 0.8 && d.petal_length > 2.5) {
         return "focus";
@@ -148,6 +151,7 @@ function isFocus(d) {
     }
 }
 
+//function to update axes for each new section
 function updateAxes(data, call=true, fly=false) {
     x.domain([d3.min(data, d => d.petal_width)-0.1, d3.max(data, d => d.petal_width)+0.1]);
     y.domain([d3.min(data, d => d.petal_length)-0.1, d3.max(data, d => d.petal_length)+0.1]);
@@ -179,6 +183,7 @@ function updateAxes(data, call=true, fly=false) {
     }
 }
 
+//function to call drawing functions depending on the section or state
 function draw(data, state) {
     switch (state) {
         case 1:
