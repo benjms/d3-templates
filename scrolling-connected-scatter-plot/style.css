@@ -1,0 +1,32 @@
+.scroll-area {
+    margin: 0 10% 0 10%;
+}
+
+.section-top-spaceholder {
+    height: 15vh;
+}
+
+.sections {
+    overflow: hidden;
+}
+
+.section-bottom-spaceholder {
+    height: 100vh;
+}
+
+.graph {
+    margin-top: 5%;
+}
+
+.sticky-top{
+    top:5%;
+}
+
+.step {
+    margin-bottom: 150px;
+    opacity: 0.3;
+}
+
+.active {
+    opacity: 1;
+}
