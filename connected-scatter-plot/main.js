@@ -48,6 +48,23 @@ function pathLength(path) {
     return d3.create("svg:path").attr("d", path).node().getTotalLength();
 }
 
+//function to make class for year labels and their section
+function makeClass(year) {
+    if (year < 1974) {
+        return "year-label labels-1"
+    } else if (year < 1982) {
+        return "year-label labels-2"
+    } else if (year < 1987) {
+        return "year-label labels-3"
+    } else if (year < 2000) {
+        return "year-label labels-4"
+    } else if (year < 2009) {
+        return "year-label labels-5"
+    } else {
+        return "year-label labels-6"
+    }
+}
+
 //read in data & first draw
 d3.csv("data/driving.csv").then(data => {
     var i = 0;
@@ -61,11 +78,11 @@ d3.csv("data/driving.csv").then(data => {
         i++;
     })
 
-    x.domain(d3.extent(data, d => d.miles));
+    x.domain(d3.extent(data, d => d.miles)).nice();
     xAxis.call(xAxisCall.scale(x))
         .attr("transform", `translate(0, ${DIM.HEIGHT})`);
 
-    y.domain(d3.extent(data, d => d.gas));
+    y.domain(d3.extent(data, d => d.gas)).nice();
     yAxis.call(yAxisCall.scale(y))
         .attr("transform", "translate(0,0)");
 
@@ -92,11 +109,32 @@ d3.csv("data/driving.csv").then(data => {
             .attr("fill", "white")
             .attr("stroke", "black")
             .attr("stroke-width", 2);
+
+    const label = graph.append("g")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .selectAll("g")
+        .data(data)
+        .join("g")
+            .attr("transform", d => `translate(${x(d.miles)},${y(d.gas)})`)
+            .attr("opacity", 0)
+            .attr("class", d => makeClass(d.year));
+        
+    label.append("text")
+        .text(d => d.year)
+        .each(function(d) {
+            const t = d3.select(this);
+            switch (d.side) {
+                case "top": t.attr("text-anchor", "middle").attr("dy", "-0.7em"); break;
+                case "right": t.attr("dx", "0.5em").attr("dy", "0.32em").attr("text-anchor", "start"); break;
+                case "bottom": t.attr("text-anchor", "middle").attr("dy", "1.4em"); break;
+                case "left": t.attr("dx", "-0.5em").attr("dy", "0.32em").attr("text-anchor", "end"); break;
+            }
+        });
 })
 
-console.log(driving);
-
-function makeLine(data, start, end) {
+//draw line for one section
+function makeLine(data, start, end, round) {
     var startData = data.filter(d => {return (d.year < start)});
     var endData = data.filter(d => {return (d.year < end)});
 
@@ -109,9 +147,15 @@ function makeLine(data, start, end) {
         .transition().duration((l_end-l_start)*2)
         .ease(d3.easeLinear)
         .attr("stroke-dasharray", `${l_end},${l_all-l_end}`);
+
+    d3.selectAll(".year-label.labels-" + round)
+        .transition()
+        .delay((d, i) => pathLength(line(data.slice(0, i + 1))) / (l_end-l_start) * 1500)
+        .attr("opacity", 1);
 }
 
-function removeLine(data, start, end) {
+//remove line for one section
+function removeLine(data, start, end, round) {
     var startData = data.filter(d => {return (d.year < start)});
     var endData = data.filter(d => {return (d.year < end)});
 
@@ -124,47 +168,54 @@ function removeLine(data, start, end) {
         .transition().duration((l_start-l_end)*2)
         .ease(d3.easeLinear)
         .attr("stroke-dasharray", `${l_end},${l-l_end}`);
+
+    d3.selectAll(".year-label.labels-" + round)
+        .transition()
+        .delay((d, i) => pathLength(line(data.slice(0, i + 1))) / (l_end-l_start) * 2000)
+        .attr("opacity", 0);
 }
 
+//draw sections depending on step/section
 function draw(data, step) {
     switch (step) {
         case 1:
-            makeLine(data, 1956, 1974);
+            makeLine(data, 1956, 1974, 1);
             break;
         case 2:
-            makeLine(data, 1974, 1982);
+            makeLine(data, 1974, 1982, 2);
             break;
         case 3:
-            makeLine(data, 1982, 1987);
+            makeLine(data, 1982, 1987, 3);
             break;
         case 4:
-            makeLine(data, 1987, 2000);
+            makeLine(data, 1987, 2000, 4);
             break;
         case 5:
-            makeLine(data, 2000, 2009);
+            makeLine(data, 2000, 2009, 5);
             break;
         case 6:
-            makeLine(data, 2009, 2011);
+            makeLine(data, 2009, 2011, 6);
             break;
     };
 }
 
+//remove sections depending on step/section
 function reverseDraw(data, step) {
     switch (step) {
         case 1: 
-            removeLine(data, 1982, 1974);
+            removeLine(data, 1982, 1974, 2);
             break;
         case 2:
-            removeLine(data, 1987, 1982);
+            removeLine(data, 1987, 1982, 3);
             break;
         case 3:
-            removeLine(data, 2000, 1987);
+            removeLine(data, 2000, 1987, 4);
             break;
         case 4:
-            removeLine(data, 2009, 2000);
+            removeLine(data, 2009, 2000, 5);
             break;
         case 5:
-            removeLine(data, 2011, 2009);
+            removeLine(data, 2011, 2009, 6);
             break;
     }
 }
